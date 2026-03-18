@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admin Dashboard</title>
+
+ <a href="/logout">
+  <button style="background:red; float:right;">Logout</button>
+</a>
+
+<style>
+body{
+  font-family:sans-serif;
+  background:#f5f7fb;
+  padding:30px;
+}
+
+.card{
+  background:white;
+  padding:20px;
+  border-radius:10px;
+  margin-bottom:20px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+
+input, select{
+  width:100%;
+  padding:10px;
+  margin:8px 0;
+}
+
+button{
+  background:#667eea;
+  color:white;
+  border:none;
+  padding:8px 12px;
+  border-radius:5px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+td,th{
+  padding:10px;
+  border-bottom:1px solid #ddd;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Admin Dashboard</h2>
+
+<div class="card">
+<h3>Create User</h3>
+
+<form method="post" action="/create_user">
+  <input name="email" placeholder="Email">
+  <input name="password" placeholder="Password">
+
+  <select name="role">
+    <option value="admin">Admin</option>
+    <option value="employee">Employee</option>
+  </select>
+
+  <button>Create User</button>
+</form>
+</div>
+
+<div class="card">
+<h3>Leave Requests</h3>
+
+<table>
+<tr>
+<th>ID</th>
+<th>Email</th>
+<th>Reason</th>
+<th>From</th>
+<th>To</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+
+{% for l in leaves %}
+<tr>
+<td>{{l[0]}}</td>
+<td>{{l[1]}}</td>
+<td>{{l[2]}}</td>
+<td>{{l[3]}}</td>
+<td>{{l[4]}}</td>
+<td>{{l[5]}}</td>
+<td>
+<form method="post" action="/leave_action">
+<input type="hidden" name="id" value="{{l[0]}}">
+<button name="action" value="Approved">Approve</button>
+<button name="action" value="Rejected">Reject</button>
+</form>
+</td>
+</tr>
+{% endfor %}
+
+</table>
+</div>
+
+</body>
+</html>

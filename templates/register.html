@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Register</title>
+
+<style>
+body{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  background:#f5f7fb;
+  font-family:sans-serif;
+}
+
+.card{
+  background:white;
+  padding:30px;
+  border-radius:12px;
+  width:300px;
+  box-shadow:0 5px 20px rgba(0,0,0,0.1);
+}
+
+input, select{
+  width:100%;
+  padding:10px;
+  margin:10px 0;
+}
+
+button{
+  width:100%;
+  padding:10px;
+  background:#667eea;
+  color:white;
+  border:none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+<h2>Register</h2>
+
+<form method="post" action="/register">
+  <input name="email" placeholder="Email">
+  <input name="password" placeholder="Password">
+
+  <select name="role">
+    <option value="admin">Admin</option>
+    <option value="employee">Employee</option>
+  </select>
+
+  <button>Register</button>
+</form>
+</div>
+
+</body>
+</html>
