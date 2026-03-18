@@ -3,6 +3,10 @@
 <head>
 <title>Employee Dashboard</title>
 
+ <a href="/logout">
+  <button style="background:red; float:right;">Logout</button>
+</a>
+
 <style>
 body{
   font-family:sans-serif;
@@ -48,6 +52,8 @@ td,th{
 
 <h2>Employee Dashboard</h2>
 
+
+
 <div class="card">
 <h3>Apply Leave</h3>
 
@@ -58,9 +64,7 @@ td,th{
   <input type="date" name="from_date" required>
   <input type="date" name="to_date" required>
 
-  <a href="/logout">
-  <button style="background:red; float:right;">Logout</button>
-</a>
+ 
 
   <button>Apply Leave</button>
 </form>
