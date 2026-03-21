@@ -2,12 +2,22 @@ from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 import sqlite3
-import os
 import urllib.parse
 from datetime import datetime
+import pytz
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+
+# -----------------------
+# IST TIME FUNCTION
+# -----------------------
+def get_ist_time():
+    ist = pytz.timezone('Asia/Kolkata')
+    now = datetime.now(ist)
+    date = now.strftime("%Y-%m-%d")
+    time = now.strftime("%H:%M:%S")
+    return date, time
 
 # -----------------------
 # DATABASE
@@ -68,18 +78,11 @@ def register_page(request: Request):
 # -----------------------
 @app.post("/register")
 def register(email: str = Form(...), password: str = Form(...), role: str = Form(...), phone: str = Form(...)):
-
-    if role == "admin":
-        existing_admin = cur.execute("SELECT * FROM users WHERE role='admin'").fetchone()
-        if existing_admin:
-            return {"msg": "Admin already exists"}
-
     cur.execute(
         "INSERT INTO users (email,password,role,phone) VALUES (?,?,?,?)",
         (email, password, role, phone)
     )
     conn.commit()
-
     return RedirectResponse("/", status_code=303)
 
 # -----------------------
@@ -131,7 +134,7 @@ def employee_dashboard(request: Request, email: str):
         (email,)
     ).fetchall()
 
-    today = datetime.now().strftime("%Y-%m-%d")
+    today, _ = get_ist_time()
     today_record = cur.execute(
         "SELECT * FROM attendance WHERE employee_email=? AND date=?",
         (email, today)
@@ -170,12 +173,11 @@ def leave_action(id: int = Form(...), action: str = Form(...)):
     return RedirectResponse("/admin", status_code=303)
 
 # -----------------------
-# ATTENDANCE CHECK IN
+# ATTENDANCE CHECK IN (IST)
 # -----------------------
 @app.post("/check_in")
 def check_in(email: str = Form(...)):
-    today = datetime.now().strftime("%Y-%m-%d")
-    time_now = datetime.now().strftime("%H:%M:%S")
+    today, time_now = get_ist_time()
 
     existing = cur.execute(
         "SELECT * FROM attendance WHERE employee_email=? AND date=?",
@@ -192,12 +194,11 @@ def check_in(email: str = Form(...)):
     return RedirectResponse(f"/employee/{email}", status_code=303)
 
 # -----------------------
-# ATTENDANCE CHECK OUT
+# ATTENDANCE CHECK OUT (IST)
 # -----------------------
 @app.post("/check_out")
 def check_out(email: str = Form(...)):
-    today = datetime.now().strftime("%Y-%m-%d")
-    time_now = datetime.now().strftime("%H:%M:%S")
+    today, time_now = get_ist_time()
 
     cur.execute(
         "UPDATE attendance SET check_out=? WHERE employee_email=? AND date=?",
