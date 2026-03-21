@@ -2,7 +2,6 @@
 <html>
 <head>
 <title>Login</title>
-
 <style>
 body{
   height:100vh;
@@ -12,55 +11,40 @@ body{
   background:linear-gradient(135deg,#667eea,#764ba2);
   font-family:sans-serif;
 }
-
 .card{
   background:white;
   padding:30px;
-  border-radius:12px;
+  border-radius:10px;
   width:300px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.2);
 }
-
-h2{text-align:center;}
-
-input{
+input, button{
   width:100%;
   padding:10px;
-  margin:10px 0;
-  border-radius:6px;
-  border:1px solid #ccc;
+  margin:8px 0;
 }
-
 button{
-  width:100%;
-  padding:10px;
   background:#667eea;
   color:white;
   border:none;
-  border-radius:6px;
 }
-
 a{
   display:block;
   text-align:center;
-  margin-top:10px;
 }
 </style>
 </head>
 
 <body>
-
 <div class="card">
 <h2>Login</h2>
 
 <form method="post" action="/login">
-  <input name="email" placeholder="Email">
-  <input name="password" type="password" placeholder="Password">
-  <button>Login</button>
+<input name="email" placeholder="Email">
+<input name="password" type="password" placeholder="Password">
+<button>Login</button>
 </form>
 
 <a href="/register">Register</a>
 </div>
-
 </body>
 </html>

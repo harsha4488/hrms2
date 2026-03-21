@@ -2,32 +2,12 @@ from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 import sqlite3
-import smtplib
-from email.mime.text import MIMEText
 import os
+import urllib.parse
+from datetime import datetime
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
-
-# -----------------------
-# EMAIL CONFIG (USE ENV IN RENDER)
-# -----------------------
-EMAIL = os.getenv("EMAIL") 
-PASSWORD = os.getenv("PASSWORD") 
-
-def send_email(to_email, subject, message):
-    try:
-        msg = MIMEText(message)
-        msg["Subject"] = subject
-        msg["From"] = EMAIL
-        msg["To"] = to_email
-
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(EMAIL, PASSWORD)
-            server.send_message(msg)
-
-    except Exception as e:
-        print("Email error:", e)
 
 # -----------------------
 # DATABASE
@@ -41,7 +21,8 @@ CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     email TEXT UNIQUE,
     password TEXT,
-    role TEXT
+    role TEXT,
+    phone TEXT
 )
 """)
 
@@ -53,6 +34,16 @@ CREATE TABLE IF NOT EXISTS leaves (
     from_date TEXT,
     to_date TEXT,
     status TEXT
+)
+""")
+
+cur.execute("""
+CREATE TABLE IF NOT EXISTS attendance (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    employee_email TEXT,
+    date TEXT,
+    check_in TEXT,
+    check_out TEXT
 )
 """)
 
@@ -76,25 +67,18 @@ def register_page(request: Request):
 # REGISTER USER
 # -----------------------
 @app.post("/register")
-def register(email: str = Form(...), password: str = Form(...), role: str = Form(...)):
+def register(email: str = Form(...), password: str = Form(...), role: str = Form(...), phone: str = Form(...)):
 
-    # 🚨 ONLY ONE ADMIN
     if role == "admin":
-        existing_admin = cur.execute(
-            "SELECT * FROM users WHERE role='admin'"
-        ).fetchone()
-
+        existing_admin = cur.execute("SELECT * FROM users WHERE role='admin'").fetchone()
         if existing_admin:
-            return {"msg": "Admin already exists. Only one allowed."}
+            return {"msg": "Admin already exists"}
 
-    try:
-        cur.execute(
-            "INSERT INTO users (email,password,role) VALUES (?,?,?)",
-            (email, password, role)
-        )
-        conn.commit()
-    except sqlite3.IntegrityError:
-        return {"msg": "User already exists"}
+    cur.execute(
+        "INSERT INTO users (email,password,role,phone) VALUES (?,?,?,?)",
+        (email, password, role, phone)
+    )
+    conn.commit()
 
     return RedirectResponse("/", status_code=303)
 
@@ -129,116 +113,104 @@ def logout():
 @app.get("/admin", response_class=HTMLResponse)
 def admin_dashboard(request: Request):
     leaves = cur.execute("SELECT * FROM leaves").fetchall()
-    return templates.TemplateResponse(
-        "dashboard_admin.html",
-        {"request": request, "leaves": leaves}
-    )
-
-# -----------------------
-# CREATE USER
-# -----------------------
-@app.post("/create_user")
-def create_user(email: str = Form(...), password: str = Form(...), role: str = Form(...)):
-
-    if role == "admin":
-        existing_admin = cur.execute(
-            "SELECT * FROM users WHERE role='admin'"
-        ).fetchone()
-
-        if existing_admin:
-            return {"msg": "Only one admin allowed"}
-
-    try:
-        cur.execute(
-            "INSERT INTO users (email,password,role) VALUES (?,?,?)",
-            (email, password, role)
-        )
-        conn.commit()
-    except sqlite3.IntegrityError:
-        return {"msg": "User already exists"}
-
-    return RedirectResponse("/admin", status_code=303)
+    return templates.TemplateResponse("dashboard_admin.html", {"request": request, "leaves": leaves})
 
 # -----------------------
 # EMPLOYEE DASHBOARD
 # -----------------------
 @app.get("/employee/{email}", response_class=HTMLResponse)
 def employee_dashboard(request: Request, email: str):
+
     leaves = cur.execute(
         "SELECT * FROM leaves WHERE employee_email=?",
         (email,)
     ).fetchall()
 
+    attendance = cur.execute(
+        "SELECT * FROM attendance WHERE employee_email=? ORDER BY date DESC",
+        (email,)
+    ).fetchall()
+
+    today = datetime.now().strftime("%Y-%m-%d")
+    today_record = cur.execute(
+        "SELECT * FROM attendance WHERE employee_email=? AND date=?",
+        (email, today)
+    ).fetchone()
+
     return templates.TemplateResponse(
         "dashboard_employee.html",
-        {"request": request, "email": email, "leaves": leaves}
+        {
+            "request": request,
+            "email": email,
+            "leaves": leaves,
+            "attendance": attendance,
+            "today_record": today_record
+        }
     )
 
 # -----------------------
-# APPLY LEAVE + EMAIL ADMIN
+# APPLY LEAVE
 # -----------------------
 @app.post("/apply_leave")
-def apply_leave(
-    email: str = Form(...),
-    reason: str = Form(...),
-    from_date: str = Form(...),
-    to_date: str = Form(...)
-):
+def apply_leave(email: str = Form(...), reason: str = Form(...), from_date: str = Form(...), to_date: str = Form(...)):
     cur.execute(
         "INSERT INTO leaves (employee_email, reason, from_date, to_date, status) VALUES (?, ?, ?, ?, ?)",
         (email, reason, from_date, to_date, "Pending")
     )
     conn.commit()
+    return RedirectResponse(f"/employee/{email}", status_code=303)
 
-    # 📧 EMAIL ADMIN
-    admin = cur.execute(
-        "SELECT email FROM users WHERE role='admin'"
+# -----------------------
+# APPROVE / REJECT
+# -----------------------
+@app.post("/leave_action")
+def leave_action(id: int = Form(...), action: str = Form(...)):
+    cur.execute("UPDATE leaves SET status=? WHERE id=?", (action, id))
+    conn.commit()
+    return RedirectResponse("/admin", status_code=303)
+
+# -----------------------
+# ATTENDANCE CHECK IN
+# -----------------------
+@app.post("/check_in")
+def check_in(email: str = Form(...)):
+    today = datetime.now().strftime("%Y-%m-%d")
+    time_now = datetime.now().strftime("%H:%M:%S")
+
+    existing = cur.execute(
+        "SELECT * FROM attendance WHERE employee_email=? AND date=?",
+        (email, today)
     ).fetchone()
 
-    if admin:
-        send_email(
-            admin["email"],
-            "New Leave Request",
-            f"""
-Employee: {email}
-From: {from_date}
-To: {to_date}
-Reason: {reason}
-Status: Pending
-"""
+    if not existing:
+        cur.execute(
+            "INSERT INTO attendance (employee_email, date, check_in) VALUES (?, ?, ?)",
+            (email, today, time_now)
         )
+        conn.commit()
 
     return RedirectResponse(f"/employee/{email}", status_code=303)
 
 # -----------------------
-# APPROVE / REJECT + EMAIL EMPLOYEE
+# ATTENDANCE CHECK OUT
 # -----------------------
-@app.post("/leave_action")
-def leave_action(id: int = Form(...), action: str = Form(...)):
-
-    leave = cur.execute(
-        "SELECT * FROM leaves WHERE id=?",
-        (id,)
-    ).fetchone()
+@app.post("/check_out")
+def check_out(email: str = Form(...)):
+    today = datetime.now().strftime("%Y-%m-%d")
+    time_now = datetime.now().strftime("%H:%M:%S")
 
     cur.execute(
-        "UPDATE leaves SET status=? WHERE id=?",
-        (action, id)
+        "UPDATE attendance SET check_out=? WHERE employee_email=? AND date=?",
+        (time_now, email, today)
     )
     conn.commit()
 
-    # 📧 EMAIL EMPLOYEE
-    if leave:
-        send_email(
-            leave["employee_email"],
-            "Leave Status Update",
-            f"""
-Your leave request has been {action}
+    return RedirectResponse(f"/employee/{email}", status_code=303)
 
-From: {leave['from_date']}
-To: {leave['to_date']}
-Reason: {leave['reason']}
-"""
-        )
-
-    return RedirectResponse("/admin", status_code=303)
+# -----------------------
+# ADMIN ATTENDANCE VIEW
+# -----------------------
+@app.get("/admin_attendance", response_class=HTMLResponse)
+def admin_attendance(request: Request):
+    records = cur.execute("SELECT * FROM attendance ORDER BY date DESC").fetchall()
+    return templates.TemplateResponse("admin_attendance.html", {"request": request, "records": records})

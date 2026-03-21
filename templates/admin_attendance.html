@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Attendance Records</title>
+
+<style>
+body{
+  font-family: Arial;
+  padding:30px;
+  background:#f5f7fb;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+td, th{
+  border:1px solid #ddd;
+  padding:8px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Attendance Records</h2>
+
+<table>
+<tr>
+<th>Email</th>
+<th>Date</th>
+<th>Check In</th>
+<th>Check Out</th>
+</tr>
+
+{% for r in records %}
+<tr>
+<td>{{r[1]}}</td>
+<td>{{r[2]}}</td>
+<td>{{r[3]}}</td>
+<td>{{r[4]}}</td>
+</tr>
+{% endfor %}
+
+</table>
+
+</body>
+</html>
