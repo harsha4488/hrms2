@@ -2,7 +2,6 @@ from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 import sqlite3
-import urllib.parse
 from datetime import datetime
 import pytz
 
@@ -10,7 +9,7 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
 # -----------------------
-# IST TIME FUNCTION
+# IST TIME
 # -----------------------
 def get_ist_time():
     ist = pytz.timezone('Asia/Kolkata')
@@ -116,7 +115,30 @@ def logout():
 @app.get("/admin", response_class=HTMLResponse)
 def admin_dashboard(request: Request):
     leaves = cur.execute("SELECT * FROM leaves").fetchall()
-    return templates.TemplateResponse("dashboard_admin.html", {"request": request, "leaves": leaves})
+    users = cur.execute("SELECT * FROM users").fetchall()
+
+    return templates.TemplateResponse(
+        "dashboard_admin.html",
+        {"request": request, "leaves": leaves, "users": users}
+    )
+
+# -----------------------
+# CREATE USER FROM ADMIN
+# -----------------------
+@app.post("/create_user")
+def create_user(
+    email: str = Form(...),
+    password: str = Form(...),
+    role: str = Form(...),
+    phone: str = Form(...)
+):
+    cur.execute(
+        "INSERT INTO users (email,password,role,phone) VALUES (?,?,?,?)",
+        (email, password, role, phone)
+    )
+    conn.commit()
+
+    return RedirectResponse("/admin", status_code=303)
 
 # -----------------------
 # EMPLOYEE DASHBOARD
@@ -164,7 +186,7 @@ def apply_leave(email: str = Form(...), reason: str = Form(...), from_date: str 
     return RedirectResponse(f"/employee/{email}", status_code=303)
 
 # -----------------------
-# APPROVE / REJECT
+# APPROVE / REJECT LEAVE
 # -----------------------
 @app.post("/leave_action")
 def leave_action(id: int = Form(...), action: str = Form(...)):
@@ -173,7 +195,7 @@ def leave_action(id: int = Form(...), action: str = Form(...)):
     return RedirectResponse("/admin", status_code=303)
 
 # -----------------------
-# ATTENDANCE CHECK IN (IST)
+# ATTENDANCE CHECK IN
 # -----------------------
 @app.post("/check_in")
 def check_in(email: str = Form(...)):
@@ -186,15 +208,15 @@ def check_in(email: str = Form(...)):
 
     if not existing:
         cur.execute(
-            "INSERT INTO attendance (employee_email, date, check_in) VALUES (?, ?, ?)",
-            (email, today, time_now)
+            "INSERT INTO attendance (employee_email, date, check_in, check_out) VALUES (?, ?, ?, ?)",
+            (email, today, time_now, "")
         )
         conn.commit()
 
     return RedirectResponse(f"/employee/{email}", status_code=303)
 
 # -----------------------
-# ATTENDANCE CHECK OUT (IST)
+# ATTENDANCE CHECK OUT
 # -----------------------
 @app.post("/check_out")
 def check_out(email: str = Form(...)):

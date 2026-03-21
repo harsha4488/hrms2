@@ -2,67 +2,66 @@
 <html>
 <head>
 <title>Admin Dashboard</title>
-
 <style>
-body{
-  font-family: Arial;
-  padding:30px;
-  background:#f5f7fb;
-}
-.card{
-  background:white;
-  padding:20px;
-  border-radius:10px;
-  margin-bottom:20px;
-}
-table{
-  width:100%;
-  border-collapse:collapse;
-}
-td, th{
-  border:1px solid #ddd;
-  padding:8px;
-}
-button{
-  padding:6px 10px;
-}
-.logout{
-  float:right;
-  background:red;
-  color:white;
-}
+body{margin:0;font-family:Arial;background:#f5f7fb;}
+.sidebar{width:200px;height:100vh;background:#333;color:white;position:fixed;padding:20px;}
+.sidebar a{color:white;display:block;margin:15px 0;text-decoration:none;}
+.main{margin-left:220px;padding:30px;}
+.card{background:white;padding:20px;border-radius:10px;margin-bottom:20px;}
+table{width:100%;border-collapse:collapse;}
+td, th{padding:10px;border-bottom:1px solid #ddd;}
 </style>
 </head>
 
 <body>
 
-<a href="/logout"><button class="logout">Logout</button></a>
-<h2>Admin Dashboard</h2>
+<div class="sidebar">
+<h2>Admin</h2>
+<a href="/admin">Dashboard</a>
+<a href="/admin_attendance">Attendance</a>
+<a href="/logout">Logout</a>
+</div>
 
-<a href="/admin_attendance">
-<button style="background:green; color:white;">View Attendance</button>
-</a>
+<div class="main">
 
 <div class="card">
 <h3>Create User</h3>
-
 <form method="post" action="/create_user">
-<input name="email" placeholder="Email">
-<input name="password" placeholder="Password">
-<input name="phone" placeholder="Phone">
+<input name="email" placeholder="Email" required>
+<input name="password" placeholder="Password" required>
+<input name="phone" placeholder="Phone" required>
 
 <select name="role">
-<option value="admin">Admin</option>
 <option value="employee">Employee</option>
+<option value="admin">Admin</option>
 </select>
 
-<button>Create</button>
+<button>Create User</button>
 </form>
 </div>
 
 <div class="card">
-<h3>Leave Requests</h3>
+<h3>Users</h3>
+<table>
+<tr>
+<th>ID</th>
+<th>Email</th>
+<th>Role</th>
+<th>Phone</th>
+</tr>
+{% for u in users %}
+<tr>
+<td>{{u[0]}}</td>
+<td>{{u[1]}}</td>
+<td>{{u[3]}}</td>
+<td>{{u[4]}}</td>
+</tr>
+{% endfor %}
+</table>
+</div>
 
+<div class="card">
+<h3>Leave Requests</h3>
 <table>
 <tr>
 <th>ID</th>
@@ -83,20 +82,11 @@ button{
 <td>{{l[4]}}</td>
 <td>{{l[5]}}</td>
 <td>
-
 <form method="post" action="/leave_action">
 <input type="hidden" name="id" value="{{l[0]}}">
 <button name="action" value="Approved">Approve</button>
 <button name="action" value="Rejected">Reject</button>
 </form>
-
-<form method="post" action="/send_whatsapp">
-<input type="hidden" name="phone" value="{{l[6]}}">
-<input type="hidden" name="message"
-value="Your leave from {{l[3]}} to {{l[4]}} is {{l[5]}}">
-<button style="background:green;color:white;">WhatsApp</button>
-</form>
-
 </td>
 </tr>
 {% endfor %}
@@ -104,5 +94,6 @@ value="Your leave from {{l[3]}} to {{l[4]}} is {{l[5]}}">
 </table>
 </div>
 
+</div>
 </body>
 </html>

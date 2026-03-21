@@ -4,23 +4,25 @@
 <title>Login</title>
 <style>
 body{
+  margin:0;
+  font-family:sans-serif;
   height:100vh;
   display:flex;
   justify-content:center;
   align-items:center;
   background:linear-gradient(135deg,#667eea,#764ba2);
-  font-family:sans-serif;
 }
 .card{
   background:white;
-  padding:30px;
+  padding:40px;
   border-radius:10px;
   width:300px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.2);
 }
 input, button{
   width:100%;
   padding:10px;
-  margin:8px 0;
+  margin:10px 0;
 }
 button{
   background:#667eea;
@@ -36,14 +38,12 @@ a{
 
 <body>
 <div class="card">
-<h2>Login</h2>
-
+<h2>HRMS Login</h2>
 <form method="post" action="/login">
 <input name="email" placeholder="Email">
-<input name="password" type="password" placeholder="Password">
+<input type="password" name="password" placeholder="Password">
 <button>Login</button>
 </form>
-
 <a href="/register">Register</a>
 </div>
 </body>
