@@ -8,9 +8,7 @@ import pytz
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
-# -----------------------
 # IST TIME
-# -----------------------
 def get_ist_time():
     ist = pytz.timezone('Asia/Kolkata')
     now = datetime.now(ist)
@@ -18,23 +16,30 @@ def get_ist_time():
     time = now.strftime("%H:%M:%S")
     return date, time
 
-# -----------------------
 # DATABASE
-# -----------------------
 conn = sqlite3.connect("database.db", check_same_thread=False)
 conn.row_factory = sqlite3.Row
 cur = conn.cursor()
 
+# USERS
 cur.execute("""
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     email TEXT UNIQUE,
     password TEXT,
     role TEXT,
-    phone TEXT
+    phone TEXT,
+    joining_date TEXT,
+    department TEXT,
+    designation TEXT,
+    goals TEXT,
+    manager TEXT,
+    salary TEXT,
+    status TEXT
 )
 """)
 
+# LEAVES
 cur.execute("""
 CREATE TABLE IF NOT EXISTS leaves (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -46,6 +51,7 @@ CREATE TABLE IF NOT EXISTS leaves (
 )
 """)
 
+# ATTENDANCE
 cur.execute("""
 CREATE TABLE IF NOT EXISTS attendance (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -58,35 +64,44 @@ CREATE TABLE IF NOT EXISTS attendance (
 
 conn.commit()
 
-# -----------------------
 # LOGIN PAGE
-# -----------------------
 @app.get("/", response_class=HTMLResponse)
 def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
-# -----------------------
 # REGISTER PAGE
-# -----------------------
 @app.get("/register", response_class=HTMLResponse)
 def register_page(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
 
-# -----------------------
-# REGISTER USER
-# -----------------------
+# REGISTER
 @app.post("/register")
-def register(email: str = Form(...), password: str = Form(...), role: str = Form(...), phone: str = Form(...)):
-    cur.execute(
-        "INSERT INTO users (email,password,role,phone) VALUES (?,?,?,?)",
-        (email, password, role, phone)
-    )
-    conn.commit()
+def register(
+    email: str = Form(...),
+    password: str = Form(...),
+    role: str = Form(...),
+    phone: str = Form(...),
+    joining_date: str = Form(""),
+    department: str = Form(""),
+    designation: str = Form(""),
+    goals: str = Form(""),
+    manager: str = Form(""),
+    salary: str = Form(""),
+    status: str = Form("")
+):
+    try:
+        cur.execute("""
+            INSERT INTO users
+            (email,password,role,phone,joining_date,department,designation,goals,manager,salary,status)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?)
+        """, (email,password,role,phone,joining_date,department,designation,goals,manager,salary,status))
+        conn.commit()
+    except:
+        return {"msg": "Email already exists"}
+
     return RedirectResponse("/", status_code=303)
 
-# -----------------------
 # LOGIN
-# -----------------------
 @app.post("/login")
 def login(email: str = Form(...), password: str = Form(...)):
     user = cur.execute(
@@ -102,16 +117,12 @@ def login(email: str = Form(...), password: str = Form(...)):
     else:
         return RedirectResponse(f"/employee/{email}", status_code=303)
 
-# -----------------------
 # LOGOUT
-# -----------------------
 @app.get("/logout")
 def logout():
     return RedirectResponse("/", status_code=303)
 
-# -----------------------
 # ADMIN DASHBOARD
-# -----------------------
 @app.get("/admin", response_class=HTMLResponse)
 def admin_dashboard(request: Request):
     leaves = cur.execute("SELECT * FROM leaves").fetchall()
@@ -122,29 +133,45 @@ def admin_dashboard(request: Request):
         {"request": request, "leaves": leaves, "users": users}
     )
 
-# -----------------------
-# CREATE USER FROM ADMIN
-# -----------------------
+# CREATE USER
 @app.post("/create_user")
 def create_user(
     email: str = Form(...),
     password: str = Form(...),
     role: str = Form(...),
-    phone: str = Form(...)
+    phone: str = Form(...),
+    joining_date: str = Form(""),
+    department: str = Form(""),
+    designation: str = Form(""),
+    goals: str = Form(""),
+    manager: str = Form(""),
+    salary: str = Form(""),
+    status: str = Form("")
 ):
-    cur.execute(
-        "INSERT INTO users (email,password,role,phone) VALUES (?,?,?,?)",
-        (email, password, role, phone)
-    )
+    cur.execute("""
+        INSERT INTO users
+        (email,password,role,phone,joining_date,department,designation,goals,manager,salary,status)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?)
+    """, (email,password,role,phone,joining_date,department,designation,goals,manager,salary,status))
     conn.commit()
 
     return RedirectResponse("/admin", status_code=303)
 
-# -----------------------
+# DELETE USER
+@app.get("/delete_user/{user_id}")
+def delete_user(user_id: int):
+    cur.execute("DELETE FROM users WHERE id=?", (user_id,))
+    conn.commit()
+    return RedirectResponse("/admin", status_code=303)
+
 # EMPLOYEE DASHBOARD
-# -----------------------
 @app.get("/employee/{email}", response_class=HTMLResponse)
 def employee_dashboard(request: Request, email: str):
+
+    user = cur.execute(
+        "SELECT * FROM users WHERE email=?",
+        (email,)
+    ).fetchone()
 
     leaves = cur.execute(
         "SELECT * FROM leaves WHERE employee_email=?",
@@ -167,15 +194,14 @@ def employee_dashboard(request: Request, email: str):
         {
             "request": request,
             "email": email,
+            "user": user,
             "leaves": leaves,
             "attendance": attendance,
             "today_record": today_record
         }
     )
 
-# -----------------------
 # APPLY LEAVE
-# -----------------------
 @app.post("/apply_leave")
 def apply_leave(email: str = Form(...), reason: str = Form(...), from_date: str = Form(...), to_date: str = Form(...)):
     cur.execute(
@@ -185,18 +211,14 @@ def apply_leave(email: str = Form(...), reason: str = Form(...), from_date: str 
     conn.commit()
     return RedirectResponse(f"/employee/{email}", status_code=303)
 
-# -----------------------
-# APPROVE / REJECT LEAVE
-# -----------------------
+# LEAVE APPROVE / REJECT
 @app.post("/leave_action")
 def leave_action(id: int = Form(...), action: str = Form(...)):
     cur.execute("UPDATE leaves SET status=? WHERE id=?", (action, id))
     conn.commit()
     return RedirectResponse("/admin", status_code=303)
 
-# -----------------------
-# ATTENDANCE CHECK IN
-# -----------------------
+# CHECK IN
 @app.post("/check_in")
 def check_in(email: str = Form(...)):
     today, time_now = get_ist_time()
@@ -215,9 +237,7 @@ def check_in(email: str = Form(...)):
 
     return RedirectResponse(f"/employee/{email}", status_code=303)
 
-# -----------------------
-# ATTENDANCE CHECK OUT
-# -----------------------
+# CHECK OUT
 @app.post("/check_out")
 def check_out(email: str = Form(...)):
     today, time_now = get_ist_time()
@@ -229,11 +249,3 @@ def check_out(email: str = Form(...)):
     conn.commit()
 
     return RedirectResponse(f"/employee/{email}", status_code=303)
-
-# -----------------------
-# ADMIN ATTENDANCE VIEW
-# -----------------------
-@app.get("/admin_attendance", response_class=HTMLResponse)
-def admin_attendance(request: Request):
-    records = cur.execute("SELECT * FROM attendance ORDER BY date DESC").fetchall()
-    return templates.TemplateResponse("admin_attendance.html", {"request": request, "records": records})

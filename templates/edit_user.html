@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Edit Employee</title>
+<style>
+body{font-family:Arial;background:#f4f6f9;padding:30px;}
+.card{background:white;padding:20px;border-radius:10px;width:400px;margin:auto;}
+input, select, button{width:100%;padding:10px;margin:8px 0;}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+<h2>Edit Employee</h2>
+
+<form method="post" action="/update_user">
+<input type="hidden" name="user_id" value="{{user[0]}}">
+<input name="email" value="{{user[1]}}">
+<input name="password" value="{{user[2]}}">
+<input name="phone" value="{{user[4]}}">
+<input type="date" name="joining_date" value="{{user[5]}}">
+<input name="department" value="{{user[6]}}">
+<input name="designation" value="{{user[7]}}">
+<input name="manager" value="{{user[9]}}">
+<input name="salary" value="{{user[10]}}">
+<input name="goals" value="{{user[8]}}">
+
+<select name="status">
+<option value="Active">Active</option>
+<option value="Inactive">Inactive</option>
+</select>
+
+<select name="role">
+<option value="employee">Employee</option>
+<option value="admin">Admin</option>
+</select>
+
+<button>Update</button>
+</form>
+
+</div>
+
+</body>
+</html>

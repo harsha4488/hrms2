@@ -1,50 +1,68 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Login</title>
+<title>HRMS Login</title>
+
 <style>
 body{
   margin:0;
-  font-family:sans-serif;
   height:100vh;
   display:flex;
   justify-content:center;
   align-items:center;
-  background:linear-gradient(135deg,#667eea,#764ba2);
+  font-family:Arial;
+  background:linear-gradient(135deg,#1e90ff,#3742fa);
 }
+
 .card{
   background:white;
   padding:40px;
   border-radius:10px;
-  width:300px;
-  box-shadow:0 10px 25px rgba(0,0,0,0.2);
+  width:320px;
+  box-shadow:0 5px 20px rgba(0,0,0,0.2);
+  text-align:center;
 }
+
 input, button{
   width:100%;
   padding:10px;
   margin:10px 0;
 }
-button{
-  background:#667eea;
+
+.login-btn{
+  background:#1e90ff;
   color:white;
   border:none;
 }
+
+.register-btn{
+  background:#2ed573;
+  color:white;
+  border:none;
+}
+
 a{
-  display:block;
-  text-align:center;
+  text-decoration:none;
 }
 </style>
 </head>
 
 <body>
+
 <div class="card">
 <h2>HRMS Login</h2>
+
 <form method="post" action="/login">
-<input name="email" placeholder="Email">
-<input type="password" name="password" placeholder="Password">
-<button>Login</button>
+<input name="email" placeholder="Email" required>
+<input name="password" type="password" placeholder="Password" required>
+<button class="login-btn">Login</button>
 </form>
-<a href="/register">Register</a>
+
+<a href="/register">
+<button class="register-btn">Register New User</button>
+</a>
+
 </div>
+
 </body>
 </html>

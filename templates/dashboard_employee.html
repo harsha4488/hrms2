@@ -7,13 +7,13 @@
 body{
   margin:0;
   font-family:Arial;
-  background:#f5f7fb;
+  background:#f4f6f9;
 }
 
 .sidebar{
-  width:200px;
+  width:220px;
   height:100vh;
-  background:#667eea;
+  background:#2f3542;
   color:white;
   position:fixed;
   padding:20px;
@@ -27,7 +27,7 @@ body{
 }
 
 .main{
-  margin-left:220px;
+  margin-left:240px;
   padding:30px;
 }
 
@@ -42,9 +42,10 @@ body{
 button{
   padding:12px;
   width:100%;
+  margin-top:10px;
   border:none;
   color:white;
-  margin-top:10px;
+  border-radius:5px;
 }
 
 table{
@@ -53,7 +54,7 @@ table{
 }
 
 th{
-  background:#667eea;
+  background:#1e90ff;
   color:white;
 }
 
@@ -67,37 +68,51 @@ td, th{
 <body>
 
 <div class="sidebar">
-<h2>HRMS</h2>
+<h2>Employee</h2>
 <a href="#">Dashboard</a>
-<a href="#">Attendance</a>
-<a href="#">Leaves</a>
 <a href="/logout">Logout</a>
 </div>
 
 <div class="main">
-<h2>Employee Dashboard</h2>
 
+<!-- EMPLOYEE PROFILE -->
+<div class="card">
+<h3>Employee Profile</h3>
+<p><b>Email:</b> {{user[1]}}</p>
+<p><b>Phone:</b> {{user[4]}}</p>
+<p><b>Department:</b> {{user[6]}}</p>
+<p><b>Designation:</b> {{user[7]}}</p>
+<p><b>Manager:</b> {{user[9]}}</p>
+<p><b>Joining Date:</b> {{user[5]}}</p>
+<p><b>Goals:</b> {{user[8]}}</p>
+<p><b>Salary:</b> {{user[10]}}</p>
+<p><b>Status:</b> {{user[11]}}</p>
+</div>
+
+<!-- TODAY ATTENDANCE -->
 <div class="card">
 <h3>Today's Attendance</h3>
 
 {% if today_record %}
-<p>Check In: {{today_record[3]}}</p>
-<p>Check Out: {{today_record[4]}}</p>
+<p><b>Check In:</b> {{today_record[3]}}</p>
+<p><b>Check Out:</b> {{today_record[4]}}</p>
 {% else %}
 <p>No attendance today</p>
 {% endif %}
 
 <form method="post" action="/check_in">
 <input type="hidden" name="email" value="{{email}}">
-<button style="background:#2196F3;">Punch In</button>
+<button style="background:#1e90ff;">Punch In</button>
 </form>
 
 <form method="post" action="/check_out">
 <input type="hidden" name="email" value="{{email}}">
-<button style="background:#f44336;">Punch Out</button>
+<button style="background:#ff4757;">Punch Out</button>
 </form>
+
 </div>
 
+<!-- ATTENDANCE HISTORY -->
 <div class="card">
 <h3>Attendance History</h3>
 <table>
@@ -117,17 +132,21 @@ td, th{
 </table>
 </div>
 
+<!-- APPLY LEAVE -->
 <div class="card">
 <h3>Apply Leave</h3>
 <form method="post" action="/apply_leave">
 <input type="hidden" name="email" value="{{email}}">
-<input name="reason" placeholder="Reason">
-<input type="date" name="from_date">
-<input type="date" name="to_date">
-<button style="background:#4CAF50;">Apply Leave</button>
+<input name="reason" placeholder="Reason" required>
+<label>From Date</label>
+<input type="date" name="from_date" required>
+<label>To Date</label>
+<input type="date" name="to_date" required>
+<button style="background:#2ed573;">Apply Leave</button>
 </form>
 </div>
 
+<!-- LEAVE HISTORY -->
 <div class="card">
 <h3>Your Leaves</h3>
 <table>

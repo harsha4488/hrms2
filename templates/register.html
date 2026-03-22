@@ -1,48 +1,46 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Register</title>
+<title>Register User</title>
 <style>
-body{
-  font-family:sans-serif;
-  background:#f5f7fb;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-}
-.card{
-  background:white;
-  padding:30px;
-  border-radius:10px;
-  width:320px;
-}
-input, select, button{
-  width:100%;
-  padding:10px;
-  margin:8px 0;
-}
-button{
-  background:#667eea;
-  color:white;
-  border:none;
-}
+body{font-family:Arial;background:#f4f6f9;display:flex;justify-content:center;align-items:center;height:100vh;}
+.card{background:white;padding:30px;border-radius:10px;width:400px;}
+input, select, button{width:100%;padding:10px;margin:8px 0;}
+button{background:#1e90ff;color:white;border:none;}
 </style>
 </head>
-
 <body>
+
 <div class="card">
 <h2>Register User</h2>
+
 <form method="post" action="/register">
-<input name="email" placeholder="Email">
-<input name="password" placeholder="Password">
+<input name="email" placeholder="Email" required>
+<input name="password" type="password" placeholder="Password" required>
 <input name="phone" placeholder="Phone">
-<select name="role">
-<option value="admin">Admin</option>
-<option value="employee">Employee</option>
+
+<label>Joining Date</label>
+<input type="date" name="joining_date">
+
+<input name="department" placeholder="Department">
+<input name="designation" placeholder="Designation">
+<input name="manager" placeholder="Manager">
+<input name="salary" placeholder="Salary">
+<input name="goals" placeholder="Goals">
+
+<select name="status">
+<option value="Active">Active</option>
+<option value="Inactive">Inactive</option>
 </select>
-<button>Register</button>
+
+<select name="role">
+<option value="employee">Employee</option>
+<option value="admin">Admin</option>
+</select>
+
+<button type="submit">Register</button>
 </form>
+
 </div>
 </body>
 </html>
