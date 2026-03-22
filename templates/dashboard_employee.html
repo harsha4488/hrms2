@@ -2,6 +2,7 @@
 <html>
 <head>
 <title>Employee Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body{
@@ -28,15 +29,14 @@ body{
 
 .main{
   margin-left:240px;
-  padding:30px;
+  padding:20px;
 }
 
 .card{
   background:white;
-  padding:20px;
+  padding:15px;
   border-radius:10px;
   margin-bottom:20px;
-  box-shadow:0 2px 10px rgba(0,0,0,0.1);
 }
 
 button{
@@ -45,12 +45,16 @@ button{
   margin-top:10px;
   border:none;
   color:white;
-  border-radius:5px;
+}
+
+.table-container{
+  overflow-x:auto;
 }
 
 table{
   width:100%;
   border-collapse:collapse;
+  min-width:500px;
 }
 
 th{
@@ -61,6 +65,19 @@ th{
 td, th{
   padding:10px;
   border-bottom:1px solid #ddd;
+}
+
+/* MOBILE */
+@media (max-width: 768px){
+  .sidebar{
+    width:100%;
+    height:auto;
+    position:relative;
+  }
+
+  .main{
+    margin-left:0;
+  }
 }
 </style>
 </head>
@@ -75,29 +92,22 @@ td, th{
 
 <div class="main">
 
-<!-- EMPLOYEE PROFILE -->
 <div class="card">
-<h3>Employee Profile</h3>
-<p><b>Email:</b> {{user[1]}}</p>
-<p><b>Phone:</b> {{user[4]}}</p>
-<p><b>Department:</b> {{user[6]}}</p>
-<p><b>Designation:</b> {{user[7]}}</p>
-<p><b>Manager:</b> {{user[9]}}</p>
-<p><b>Joining Date:</b> {{user[5]}}</p>
-<p><b>Goals:</b> {{user[8]}}</p>
-<p><b>Salary:</b> {{user[10]}}</p>
-<p><b>Status:</b> {{user[11]}}</p>
+<h3>Profile</h3>
+<p>Email: {{user[1]}}</p>
+<p>Department: {{user[6]}}</p>
+<p>Designation: {{user[7]}}</p>
+<p>Manager: {{user[9]}}</p>
+<p>Joining Date: {{user[5]}}</p>
+<p>Goals: {{user[8]}}</p>
 </div>
 
-<!-- TODAY ATTENDANCE -->
 <div class="card">
 <h3>Today's Attendance</h3>
 
 {% if today_record %}
-<p><b>Check In:</b> {{today_record[3]}}</p>
-<p><b>Check Out:</b> {{today_record[4]}}</p>
-{% else %}
-<p>No attendance today</p>
+<p>Check In: {{today_record[3]}}</p>
+<p>Check Out: {{today_record[4]}}</p>
 {% endif %}
 
 <form method="post" action="/check_in">
@@ -109,17 +119,16 @@ td, th{
 <input type="hidden" name="email" value="{{email}}">
 <button style="background:#ff4757;">Punch Out</button>
 </form>
-
 </div>
 
-<!-- ATTENDANCE HISTORY -->
 <div class="card">
 <h3>Attendance History</h3>
+<div class="table-container">
 <table>
 <tr>
 <th>Date</th>
-<th>Check In</th>
-<th>Check Out</th>
+<th>In</th>
+<th>Out</th>
 </tr>
 
 {% for a in attendance %}
@@ -131,43 +140,17 @@ td, th{
 {% endfor %}
 </table>
 </div>
+</div>
 
-<!-- APPLY LEAVE -->
 <div class="card">
 <h3>Apply Leave</h3>
 <form method="post" action="/apply_leave">
 <input type="hidden" name="email" value="{{email}}">
-<input name="reason" placeholder="Reason" required>
-<label>From Date</label>
-<input type="date" name="from_date" required>
-<label>To Date</label>
-<input type="date" name="to_date" required>
+<input name="reason" placeholder="Reason">
+<input type="date" name="from_date">
+<input type="date" name="to_date">
 <button style="background:#2ed573;">Apply Leave</button>
 </form>
-</div>
-
-<!-- LEAVE HISTORY -->
-<div class="card">
-<h3>Your Leaves</h3>
-<table>
-<tr>
-<th>ID</th>
-<th>Reason</th>
-<th>From</th>
-<th>To</th>
-<th>Status</th>
-</tr>
-
-{% for l in leaves %}
-<tr>
-<td>{{l[0]}}</td>
-<td>{{l[2]}}</td>
-<td>{{l[3]}}</td>
-<td>{{l[4]}}</td>
-<td>{{l[5]}}</td>
-</tr>
-{% endfor %}
-</table>
 </div>
 
 </div>
